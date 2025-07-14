@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Glow Calculator</title>
+    <style>
+        /* --- RESET & BASE -------------------------------------- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; font-family: "Inter", sans-serif; background:#0d0d0d; display:flex; align-items:center; justify-content:center; }
+
+        /* --- CALCULATOR CONTAINER ------------------------------ */
+        .calculator {
+            --accent:#00e0ff;
+            width: 320px;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            background: #1a1a1a;
+            box-shadow: 0 0 10px var(--accent), 0 0 20px #000 inset;
+        }
+
+        /* --- DISPLAY ------------------------------------------ */
+        .display {
+            width: 100%;
+            height: 80px;
+            background: #000;
+            color: #fff;
+            font-size: 2rem;
+            border: none;
+            outline: none;
+            border-radius: .75rem;
+            padding: .5rem 1rem;
+            text-align: right;
+            box-shadow: 0 0 8px #000 inset;
+        }
+
+        /* --- BUTTON GRID -------------------------------------- */
+        .keys {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: .75rem;
+        }
+        button {
+            height: 64px;
+            font-size: 1.25rem;
+            border: none;
+            border-radius: .75rem;
+            background: #262626;
+            color: #fff;
+            cursor: pointer;
+            transition: transform .1s ease, box-shadow .2s ease;
+        }
+        button:hover { transform: translateY(-2px); }
+        button:active { transform: translateY(2px); }
+        button.operator { background: var(--accent); color:#000; font-weight:600; }
+        button.equal { grid-column: span 2; background:#ffab00; color:#000; font-weight:700; }
+        button.clear { background:#ff416c; }
+
+        /* --- NEON GLOW EFFECT --------------------------------- */
+        button.operator, button.equal, button.clear {
+            box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent) inset;
+        }
+        button.equal {
+            box-shadow: 0 0 6px #ffab00, 0 0 12px #ffab00 inset;
+        }
+        button.clear {
+            box-shadow: 0 0 6px #ff416c, 0 0 12px #ff416c inset;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator" id="calc">
+        <input type="text" class="display" id="display" value="0" disabled>
+        <div class="keys">
+            <button class="clear" data-action="clear">C</button>
+            <button data-value="(">(</button>
+            <button data-value=")">)</button>
+            <button class="operator" data-value="/">÷</button>
+
+            <button data-value="7">7</button>
+            <button data-value="8">8</button>
+            <button data-value="9">9</button>
+            <button class="operator" data-value="*">×</button>
+
+            <button data-value="4">4</button>
+            <button data-value="5">5</button>
+            <button data-value="6">6</button>
+            <button class="operator" data-value="-">−</button>
+
+            <button data-value="1">1</button>
+            <button data-value="2">2</button>
+            <button data-value="3">3</button>
+            <button class="operator" data-value="+">+</button>
+
+            <button data-value="0">0</button>
+            <button data-value=".">.</button>
+            <button class="equal" data-action="equal">=</button>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        const keys    = document.querySelector('.keys');
+        let expression = '';
+
+        // Utility to safely evaluate using Function constructor
+        const safeEval = expr => {
+            try {
+                // Prevent accidental code execution by allowing only math symbols/nums
+                if (/^[0-9+\-*/().\s]+$/.test(expr)) {
+                    /* eslint no-new-func: "off" */
+                    return Function(`"use strict"; return (${expr})`)();
+                }
+                return 'Err';
+            } catch {
+                return 'Err';
+            }
+        };
+
+        const updateDisplay = val => {
+            display.value = val.toString().substring(0, 12);
+        };
+
+        keys.addEventListener('click', e => {
+            if (!e.target.matches('button')) return;
+            const btn = e.target;
+            const value = btn.dataset.value;
+            const action = btn.dataset.action;
+
+            switch (action) {
+                case 'clear':
+                    expression = '';
+                    updateDisplay(0);
+                    break;
+                case 'equal':
+                    const result = safeEval(expression || '0');
+                    expression = (result !== 'Err') ? result.toString() : '';
+                    updateDisplay(result);
+                    break;
+                default:
+                    expression += value;
+                    updateDisplay(expression);
+            }
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', e => {
+            const key = e.key;
+            if (/[0-9+\-*/().]/.test(key)) {
+                expression += key;
+                updateDisplay(expression);
+            }
+            if (key === 'Enter') {
+                const result = safeEval(expression || '0');
+                expression = (result !== 'Err') ? result.toString() : '';
+                updateDisplay(result);
+            }
+            if (key === 'Escape') {
+                expression = '';
+                updateDisplay(0);
+            }
+        });
+    </script>
+</body>
+</html>
